@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Piano</title>
+</head>
+<body>
+  <canvas id="canvas" width="400" height="200"></canvas>
+  <script>
+    // Initialize the audio context
+    const audioContext = new AudioContext();
+
+    // Define the frequencies of the piano keys (in Hz)
+    const FREQUENCIES = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25];
+
+    // Define the names of the piano keys
+    const KEY_NAMES = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C5'];
+
+    // Define the colors of the piano keys
+    const KEY_COLORS = ['#fff', '#000', '#fff', '#000', '#fff', '#fff', '#000', '#fff'];
+
+    // Define the size of the piano keys (in pixels)
+    const KEY_WIDTH = 50;
+    const KEY_HEIGHT = 200;
+
+    // Create the canvas and get the 2D context
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    // Create the piano keys
+    const keys = [];
+    for (let i = 0; i < FREQUENCIES.length; i++) {
+      const x = i * KEY_WIDTH;
+      const y = 0;
+      const key = {x, y, width: KEY_WIDTH, height: KEY_HEIGHT, frequency: FREQUENCIES[i], name: KEY_NAMES[i], color: KEY_COLORS[i]};
+      keys.push(key);
+    }
+
+    // Draw the piano keys
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let i = 0; i < keys.length; i++) {
+        const key = keys[i];
+        ctx.fillStyle = key.color;
+        ctx.fillRect(key.x, key.y, key.width, key.height);
+        ctx.strokeRect(key.x, key.y, key.width, key.height);
+      }
+    }
+
+    // Play a note when a key is pressed
+    function playNote(key) {
+      const oscillator = audioContext.createOscillator();
+      oscillator.frequency.setValueAtTime(key.frequency, audioContext.currentTime);
+      oscillator.type = 'triangle';
+      oscillator.connect(audioContext.destination);
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.5);
+    }
+
+    // Add event listeners to the canvas
+    canvas.addEventListener('mousedown', function(e) {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      for (let i = 0; i < keys.length; i++) {
+        const key = keys[i];
+        if (x >= key.x && x <= key.x + key.width && y >= key.y && y <= key.y + key.height) {
+          playNote(key);
+          break;
+        }
+      }
+    });
+
+    // Start the animation loop
+    requestAnimationFrame(function loop() {
+      draw();
+      requestAnimationFrame(loop);
+    });
+  </script>
+</body>
+</html>
