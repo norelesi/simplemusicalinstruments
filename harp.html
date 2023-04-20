@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Harp Simulator</title>
+    <style>
+      #harp {
+        position: relative;
+        width: 600px;
+        height: 400px;
+        margin: auto;
+        background-image: url('harp.png');
+        background-size: cover;
+        cursor: pointer;
+      }
+      .string {
+        position: absolute;
+        width: 5px;
+        height: 400px;
+        background-color: #000;
+        opacity: 0.1;
+        transition: opacity 0.2s ease-out;
+      }
+      .string:hover {
+        opacity: 0.5;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="harp">
+      <div class="string" style="left: 50px;"></div>
+      <div class="string" style="left: 130px;"></div>
+      <div class="string" style="left: 210px;"></div>
+      <div class="string" style="left: 290px;"></div>
+      <div class="string" style="left: 370px;"></div>
+      <div class="string" style="left: 450px;"></div>
+      <div class="string" style="left: 530px;"></div>
+    </div>
+    <script>
+      // initialize audio context and variables
+      var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      var strings = document.getElementsByClassName('string');
+      var notes = [261.63, 293.66, 329.63, 349.23, 392, 440, 493.88];
+      var gains = [];
+
+      // create gain nodes for each string
+      for (var i = 0; i < strings.length; i++) {
+        gains[i] = audioCtx.createGain();
+        gains[i].gain.value = 0;
+        gains[i].connect(audioCtx.destination);
+      }
+
+      // add click event listeners to each string
+      for (var i = 0; i < strings.length; i++) {
+        strings[i].addEventListener('click', function() {
+          var index = Array.prototype.indexOf.call(strings, this);
+          var note = notes[index];
+          var gain = gains[index];
+
+          // create and start oscillator for the selected string
+          var oscillator = audioCtx.createOscillator();
+          oscillator.type = 'sine';
+          oscillator.frequency.value = note;
+          oscillator.connect(gain);
+          oscillator.start();
+
+          // set the gain envelope to emulate harp sound
+          gain.gain.setValueAtTime(0, audioCtx.currentTime);
+          gain.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.1);
+          gain.gain.exponentialRampToValueAtTime(0.1, audioCtx.currentTime + 0.4);
+          gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.8);
+          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1);
+
+          // stop oscillator after envelope finishes
+          setTimeout(function() {
+            oscillator.stop();
+          }, 1000);
+        });
+      }
+    </script>
+  </body>
+</html>

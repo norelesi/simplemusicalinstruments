@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Playable Trumpet</title>
+    <style>
+      #trumpet {
+        position: relative;
+        width: 300px;
+        height: 500px;
+        border: 1px solid black;
+        border-radius: 30px 30px 0 0;
+        margin: 50px auto;
+        background-color: gold;
+      }
+
+      #trumpet:before {
+        content: '';
+        position: absolute;
+        top: -70px;
+        left: 30px;
+        width: 240px;
+        height: 100px;
+        border-radius: 0 0 80px 80px;
+        background-color: #444;
+      }
+
+      #trumpet:after {
+        content: '';
+        position: absolute;
+        top: -100px;
+        left: 80px;
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        background-color: #222;
+      }
+
+      #buttons {
+        display: flex;
+        justify-content: center;
+        margin-top: 50px;
+      }
+
+      .button {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background-color: #ddd;
+        margin: 0 10px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="trumpet"></div>
+    <div id="buttons">
+      <div class="button" onclick="playNote()">C</div>
+      <div class="button" onclick="playNote()">D</div>
+      <div class="button" onclick="playNote()">E</div>
+      <div class="button" onclick="playNote()">F</div>
+      <div class="button" onclick="playNote()">G</div>
+      <div class="button" onclick="playNote()">A</div>
+      <div class="button" onclick="playNote()">B</div>
+      <div class="button" onclick="playNote()">C</div>
+    </div>
+    <script>
+      const context = new AudioContext();
+      const frequencyMap = {
+        'C': 261.63,
+        'D': 293.66,
+        'E': 329.63,
+        'F': 349.23,
+        'G': 392.00,
+        'A': 440.00,
+        'B': 493.88
+      };
+      let playingNote = null;
+
+      function playNote() {
+        if (playingNote) {
+          playingNote.stop();
+        }
+        const button = event.target;
+        const frequency = frequencyMap[button.textContent];
+        const gain = context.createGain();
+        const oscillator = context.createOscillator();
+        oscillator.type = 'triangle';
+        oscillator.frequency.value = frequency;
+        oscillator.connect(gain);
+        gain.connect(context.destination);
+        gain.gain.setValueAtTime(0, context.currentTime);
+        gain.gain.linearRampToValueAtTime(1, context.currentTime + 0.1);
+        gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 2);
+        oscillator.start();
+        playingNote = oscillator;
+      }
+    </script>
+  </body>
+</html>
